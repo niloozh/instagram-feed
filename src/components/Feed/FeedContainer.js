@@ -42,18 +42,38 @@ export const FeedContainer = () => {
     (node) => {
       if (loading) return;
       if (observerRef.current) observerRef.current.disconnect();
-      observerRef.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          setPage((prev) => prev + 1);
-        }
-      });
+
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          // Load more when the last post is visible
+          if (entries[0].isIntersecting && hasMore && !loading) {
+            console.log("Loading more posts...", page + 1);
+            setPage((prev) => prev + 1);
+          }
+        },
+        {
+          threshold: 0.2, // Trigger when 20% of element is visible
+          rootMargin: "200px", // Start loading 200px BEFORE element enters viewport
+        },
+      );
+
       if (node) observerRef.current.observe(node);
     },
-    [loading, hasMore],
+    [loading, hasMore, page],
   );
 
   const handleLike = (postId, isLiked) => {
-    console.log(`Post ${postId} ${isLiked ? "liked" : "unliked"}`);
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              hasLiked: isLiked,
+              likes: isLiked ? post.likes + 1 : post.likes - 1,
+            }
+          : post,
+      ),
+    );
   };
 
   if (loading && posts.length === 0) {
@@ -77,6 +97,12 @@ export const FeedContainer = () => {
       ))}
 
       {loading && <FeedSkeleton />}
+
+      {!hasMore && (
+        <div className="text-center py-8 text-gray-500">
+          You've seen all posts! 🎉
+        </div>
+      )}
     </div>
   );
 };
