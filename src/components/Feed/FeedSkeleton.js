@@ -12,7 +12,12 @@ export const FeedSkeleton = () => {
           </div>
           <div className="w-full aspect-square bg-gray-800"></div>
           <div className="px-4 pt-3">
-            <div className="h-4 bg-gray-800 rounded w-32 mb-2"></div>
+            <div className="flex gap-4 mb-2">
+              <div className="h-6 w-6 bg-gray-800 rounded"></div>
+              <div className="h-6 w-6 bg-gray-800 rounded"></div>
+              <div className="h-6 w-6 bg-gray-800 rounded"></div>
+            </div>
+            <div className="h-3 bg-gray-800 rounded w-32 mb-2"></div>
             <div className="h-3 bg-gray-800 rounded w-48"></div>
           </div>
         </div>
