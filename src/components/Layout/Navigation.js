@@ -13,6 +13,7 @@ export const Navigation = () => {
     { name: "search", path: "/search", label: "Search" },
     { name: "create", path: "/create", label: "Create" },
     { name: "user", path: "/profile", label: "Profile" },
+    { name: "settings", path: "/video-config", label: "Settings" },
   ];
 
   return (

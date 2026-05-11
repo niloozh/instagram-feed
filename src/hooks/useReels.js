@@ -24,9 +24,10 @@ export const useReels = (initialPage = 1, limit = 3) => {
 
   const loadMore = useCallback(() => {
     if (!isLoading && hasMore) {
+      console.log("Loading more reels, current page:", currentPage);
       setCurrentPage((prev) => prev + 1);
     }
-  }, [isLoading, hasMore]);
+  }, [isLoading, hasMore, currentPage]);
 
   const handleLike = useCallback(async (reelId, isLiked) => {
     setReels((prev) =>
