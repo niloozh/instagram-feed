@@ -30,6 +30,7 @@
 - [Features](#features)
 - [Architecture](#architecture)
 - [Component Library](#component-library)
+- [Design System Usage Status](#design-system-usage-status)
 - [Custom Hooks](#custom-hooks)
   - [useInfiniteScroll](#useinfinitescroll)
   - [useFeed](#usefeed)
@@ -336,6 +337,21 @@ User Clicks Like
 | aspectRatio | 'square' \| 'video' \| 'portrait' | 'square'     | Container ratio    |
 | fallbackSrc | string                            | Built-in SVG | Image on error     |
 | retryable   | boolean                           | true         | Shows retry button |
+
+### Design System Usage Status
+
+| Component  | Used in App           | Design System Page |
+| ---------- | --------------------- | ------------------ |
+| Button     | ✅ Yes                | ✅ Documented      |
+| Avatar     | ✅ Yes                | ✅ Documented      |
+| Icon       | ✅ Yes                | ✅ Documented      |
+| LazyImage  | ✅ Yes                | ✅ Documented      |
+| Card       | ✅ Yes                | ✅ Documented      |
+| Typography | ⚠️ Documentation only | ✅ Documented      |
+| Colors     | ⚠️ Documentation only | ✅ Documented      |
+| Spacing    | ⚠️ Documentation only | ✅ Documented      |
+
+The Design System page (`/design-system`) serves as a **living style guide** for developers, demonstrating available components and design tokens even if not every variant is used in the current implementation.
 
 ---
 
