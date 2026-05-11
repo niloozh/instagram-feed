@@ -17,6 +17,7 @@ import {
 } from "react-icons/ai";
 import { BiCompass } from "react-icons/bi";
 import { BsMusicNote, BsPerson, BsPersonFill } from "react-icons/bs";
+import { FaUser, FaUserCircle } from "react-icons/fa";
 
 export const Icon = ({
   name,
@@ -29,7 +30,7 @@ export const Icon = ({
   const icons = {
     // Navigation
     home: filled ? AiFillHome : AiOutlineHome,
-    profile: filled ? AiFillUser : AiOutlineUser,
+    profile: filled ? FaUserCircle : FaUser,
     user: filled ? BsPersonFill : BsPerson,
     userOutline: AiOutlineUser,
 
