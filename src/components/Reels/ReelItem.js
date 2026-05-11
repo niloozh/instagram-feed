@@ -87,8 +87,14 @@ export const ReelItem = ({ reel, onLike, isActive }) => {
       <div className="absolute bottom-0 left-0 right-0 top-0 pointer-events-none">
         {/* User info - bottom left */}
         <div className="absolute bottom-24 left-4 pointer-events-auto">
-          <div className="flex items-center gap-3">
-            <Avatar src={reel.userAvatar} alt={reel.username} size="md" />
+          <div className="flex items-center gap-3 mb-3 pointer-events-auto">
+            <Avatar
+              src={reel.userAvatar}
+              alt={reel.username}
+              size="md"
+              withStory={true}
+              isVerified={reel.isVerified}
+            />
             <div>
               <div className="flex items-center gap-1">
                 <span className="font-semibold text-sm text-white">
