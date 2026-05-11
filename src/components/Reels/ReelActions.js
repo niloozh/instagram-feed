@@ -9,7 +9,7 @@ export const ReelActions = ({
   onSave,
 }) => {
   return (
-    <div className="absolute bottom-24 right-4 flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-6">
       <div className="flex flex-col items-center">
         <Icon name="heart" filled={hasLiked} size={32} onClick={onLike} />
         <span className="text-xs text-white mt-1">
@@ -24,9 +24,7 @@ export const ReelActions = ({
         </span>
       </div>
 
-      <div className="flex flex-col items-center">
-        <Icon name="share" size={32} />
-      </div>
+      <Icon name="share" size={32} />
 
       <Icon name="bookmark" filled={hasSaved} size={32} onClick={onSave} />
     </div>
