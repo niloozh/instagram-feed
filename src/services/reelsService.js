@@ -52,7 +52,6 @@ export const reelsService = {
 
   likeReel: async (reelId) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    console.log(`Reel ${reelId} liked`);
     return { success: true };
   },
 };

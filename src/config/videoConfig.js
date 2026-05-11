@@ -34,13 +34,13 @@ export const getVideoUrls = () => {
 
   switch (source) {
     case "local":
-      console.log("📹 Using local videos (offline mode)");
+      //   console.log("📹 Using local videos (offline mode)");
       return localVideos;
     case "external":
-      console.log("📹 Using external videos (online mode)");
+      //   console.log("📹 Using external videos (online mode)");
       return externalVideos;
     default:
-      console.warn("⚠️ Unknown video source, using fallback");
+      //   console.warn("⚠️ Unknown video source, using fallback");
       return fallbackVideos;
   }
 };

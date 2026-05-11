@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Button } from "@/baseComponents";
 
 export default function VideoConfigPage() {
-  const router = useRouter();
   const [currentSource, setCurrentSource] = useState("local");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Load current setting
     const saved = localStorage.getItem("videoSource");
     setCurrentSource(saved === "external" ? "external" : "local");
   }, []);
@@ -17,16 +15,8 @@ export default function VideoConfigPage() {
   const toggleSource = () => {
     setIsLoading(true);
     const newSource = currentSource === "local" ? "external" : "local";
-
-    // Save to localStorage
     localStorage.setItem("videoSource", newSource);
-
-    // Show feedback
-    alert(
-      `Switched to ${newSource} videos! Page will reload to apply changes.`,
-    );
-
-    // Reload to re-fetch data with new source
+    alert(`Switched to ${newSource} videos! Page will reload.`);
     window.location.href = "/reels";
   };
 
@@ -48,26 +38,25 @@ export default function VideoConfigPage() {
           </p>
           <p className="text-gray-500 text-sm mt-1">
             {currentSource === "local"
-              ? "Using videos from /public/videos/ folder (offline mode)"
-              : "Using online video URLs (requires internet access)"}
+              ? "Using videos from /public/videos/ folder"
+              : "Using online video URLs (requires internet)"}
           </p>
         </div>
 
-        <button
+        <Button
+          variant="primary"
           onClick={toggleSource}
           disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition disabled:opacity-50"
+          className="w-full"
         >
           {isLoading
             ? "Switching..."
             : `Switch to ${currentSource === "local" ? "External" : "Local"} Videos`}
-        </button>
+        </Button>
 
         <div className="mt-6 p-4 bg-gray-800 rounded-lg">
           <p className="text-gray-400 text-sm">
-            💡 <span className="font-semibold text-white">Note:</span> After
-            switching, you'll be redirected to the Reels page to see the
-            changes.
+            💡 After switching, you'll be redirected to the Reels page.
           </p>
         </div>
       </div>
