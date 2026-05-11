@@ -39,53 +39,207 @@
 
 ## 🏗️ Architecture
 
-┌─────────────────────────────────────────────────────┐
-│ Next.js App Router │
-├─────────────────────────────────────────────────────┤
-│ Pages: / (Feed) │ /reels │ /design-system │
-├─────────────────────────────────────────────────────┤
-│ Custom Hooks │
-│ useInfiniteScroll │ useFeed │ useReels │
-├─────────────────────────────────────────────────────┤
-│ UI Components │
-│ FeedContainer │ ReelItem │ DesignSystem │
-├─────────────────────────────────────────────────────┤
-│ Service Layer │
-│ feedService.js │ reelsService.js │
-├─────────────────────────────────────────────────────┤
-│ Base Components │
-│ Card │ Button │ Avatar │
-└─────────────────────────────────────────────────────┘
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Browser / Client                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Next.js App Router                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────────────────┐  │
+│  │  / (Feed)   │  │ /reels      │  │ /design-system                      │  │
+│  │  page.js    │  │ page.js     │  │ page.js                             │  │
+│  └──────┬──────┘  └──────┬──────┘  └──────────────────┬──────────────────┘  │
+└─────────┼────────────────┼──────────────────────────┼──────────────────────┘
+          │                │                          │
+          ▼                ▼                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Component Layer                                    │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                        Features Components                           │    │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐               │    │
+│  │  │FeedContainer │  │ReelsContainer│  │DesignSystem  │               │    │
+│  │  └──────┬───────┘  └──────┬───────┘  └──────────────┘               │    │
+│  └─────────┼──────────────────┼────────────────────────────────────────┘    │
+│            │                  │                                             │
+│            ▼                  ▼                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                         Base Components                              │    │
+│  │         ┌──────┐  ┌──────┐  ┌──────┐                                │    │
+│  │         │ Card │  │Button│  │Avatar│                                │    │
+│  │         └──────┘  └──────┘  └──────┘                                │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+          │                          │                          │
+          ▼                          ▼                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             Hooks Layer                                      │
+│  ┌───────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐    │
+│  │useInfiniteScroll  │  │    useFeed      │  │       useReels          │    │
+│  │                   │  │                 │  │                         │    │
+│  │ • Intersection    │  │ • posts state   │  │ • reels state           │    │
+│  │   Observer        │  │ • loadMore      │  │ • loadMore              │    │
+│  │ • lastElementRef  │  │ • handleLike    │  │ • handleLike            │    │
+│  │ • rootMargin      │  │ • resetFeed     │  │                         │    │
+│  └───────────────────┘  └─────────────────┘  └─────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+          │                          │                          │
+          ▼                          ▼                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Services Layer                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                        API Abstraction                               │    │
+│  │  ┌─────────────────┐              ┌─────────────────┐               │    │
+│  │  │   feedService   │              │  reelsService   │               │    │
+│  │  │                 │              │                 │               │    │
+│  │  │ • getFeed()     │              │ • getReels()    │               │    │
+│  │  │ • likePost()    │              │ • likeReel()    │               │    │
+│  │  │ • unlikePost()  │              │                 │               │    │
+│  │  └────────┬────────┘              └────────┬────────┘               │    │
+│  └───────────┼────────────────────────────────┼────────────────────────┘    │
+└──────────────┼────────────────────────────────┼────────────────────────────┘
+               │                                │
+               ▼                                ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Data Layer                                      │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                           Mock API / Future Backend                   │    │
+│  │                                                                       │    │
+│  │  Posts ────────────────────► [{ id, user, image, likes, comments }]  │    │
+│  │  Reels ────────────────────► [{ id, user, video, likes, music }]     │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Data Flow
+
+```
+User Scrolls
+      │
+      ▼
+┌─────────────┐
+│ Intersection│  ──────►  loadMore()  ──────►  fetch API
+│  Observer   │
+└─────────────┘
+                        │
+                        ▼
+                 ┌─────────────┐
+                 │ New Data    │
+                 │ Received    │
+                 └─────────────┘
+                        │
+                        ▼
+┌─────────────┐    ┌─────────────┐
+│ Optimistic  │    │   Update    │  ──────►  Re-render
+│    UI       │◄───│   State     │            Component
+└─────────────┘    └─────────────┘
+```
+
+## Technology Stack
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         PRESENTATION                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
+│  │   React 18   │  │ Tailwind CSS │  │ Framer Motion│           │
+│  │  (Hooks +    │  │  (Styling)   │  │ (Animations) │           │
+│  │   Context)   │  │              │  │              │           │
+│  └──────────────┘  └──────────────┘  └──────────────┘           │
+├─────────────────────────────────────────────────────────────────┤
+│                           FRAMEWORK                              │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                    Next.js 14 (App Router)               │   │
+│  │  • Server Components  • Client Components  • Routing     │   │
+│  └──────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│                          DATA & API                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
+│  │    Axios     │  │ React Query  │  │  Mock Data   │           │
+│  │ (HTTP Calls) │  │  (Caching)   │  │ (Prototyping)│           │
+│  └──────────────┘  └──────────────┘  └──────────────┘           │
+├─────────────────────────────────────────────────────────────────┤
+│                        DEPLOYMENT                                │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                    Vercel                                │   │
+│  │  • CI/CD  • Auto-deploy  • Edge Network                 │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 📁 Folder Structure
 
-instagram-feed/
-├── app/
-│ ├── page.js # Feed page
-│ ├── reels/page.js # Reels page
-│ ├── design-system/page.js # Component library
-│ └── layout.js # Root layout with navigation
-├── src/
-│ ├── baseComponents/ # Reusable UI primitives
-│ │ ├── Card/
-│ │ ├── Button/
-│ │ └── Avatar/
-│ ├── components/ # Feature components
-│ │ ├── Feed/ # FeedContainer, FeedPost
-│ │ ├── Reels/ # ReelsContainer, ReelItem
-│ │ ├── Layout/ # Navigation
-│ │ └── DesignSystem/ # Style guide
-│ ├── hooks/ # Custom hooks
-│ │ ├── useInfiniteScroll.js
-│ │ ├── useFeed.js
-│ │ └── useReels.js
-│ ├── services/ # API abstraction
-│ │ ├── feedService.js
-│ │ └── reelsService.js
-│ └── constants/ # Design tokens
-└── public/ # Static assets
+```
+📂 instagram-feed/
+│
+├── 📁 app/
+│   ├── 📄 page.js
+│   ├── 📁 reels/
+│   │   └── 📄 page.js
+│   ├── 📁 design-system/
+│   │   └── 📄 page.js
+│   ├── 📄 layout.js
+│   └── 📄 globals.css
+│
+├── 📁 src/
+│   ├── 📁 baseComponents/
+│   │   ├── 📁 Card/
+│   │   │   └── 📄 Card.js
+│   │   ├── 📁 Button/
+│   │   │   └── 📄 Button.js
+│   │   └── 📁 Avatar/
+│   │       └── 📄 Avatar.js
+│   │
+│   ├── 📁 components/
+│   │   ├── 📁 Feed/
+│   │   │   ├── 📄 FeedContainer.js
+│   │   │   ├── 📄 FeedPost.js
+│   │   │   ├── 📄 FeedSkeleton.js
+│   │   │   └── 📁 FeedPost/
+│   │   │       ├── 📄 PostHeader.js
+│   │   │       ├── 📄 PostActions.js
+│   │   │       ├── 📄 PostCaption.js
+│   │   │       └── 📄 PostComments.js
+│   │   │
+│   │   ├── 📁 Reels/
+│   │   │   ├── 📄 ReelsContainer.js
+│   │   │   ├── 📄 ReelItem.js
+│   │   │   ├── 📄 ReelActions.js
+│   │   │   └── 📄 ReelSkeleton.js
+│   │   │
+│   │   ├── 📁 Layout/
+│   │   │   └── 📄 Navigation.js
+│   │   │
+│   │   └── 📁 DesignSystem/
+│   │       ├── 📄 Typography.js
+│   │       ├── 📄 Colors.js
+│   │       └── 📄 Spacing.js
+│   │
+│   ├── 📁 hooks/
+│   │   ├── 📄 useInfiniteScroll.js
+│   │   ├── 📄 useFeed.js
+│   │   └── 📄 useReels.js
+│   │
+│   ├── 📁 services/
+│   │   ├── 📄 feedService.js
+│   │   └── 📄 reelsService.js
+│   │
+│   ├── 📁 constants/
+│   │   └── 📄 designTokens.js
+│   │
+│   └── 📁 utils/
+│       └── 📄 helpers.js
+│
+├── 📁 public/
+│
+├── 📄 package.json
+├── 📄 jsconfig.json
+├── 📄 next.config.js
+├── 📄 tailwind.config.js
+└── 📄 README.md
+```
 
 ---
 
