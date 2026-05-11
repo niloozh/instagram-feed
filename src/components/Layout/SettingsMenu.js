@@ -65,7 +65,7 @@ export const SettingsMenu = () => {
           <div className="border-t border-gray-800"></div>
 
           <div className="px-4 py-2 bg-gray-800/50">
-            <div className="text-gray-500 text-xs text-center">v1.0.0</div>
+            <div className="text-gray-500 text-xs text-center">v1.1.0</div>
           </div>
         </div>
       )}
