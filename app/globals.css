@@ -46,6 +46,16 @@
     background-clip: text;
     color: transparent;
   }
+
+  /* Instagram container - centers content on desktop */
+  .instagram-container {
+    @apply w-full max-w-[428px] mx-auto relative;
+  }
+
+  /* Full width container for reels that need edge-to-edge */
+  .instagram-container-full {
+    @apply w-full max-w-[428px] mx-auto relative h-screen;
+  }
 }
 
 @keyframes fadeIn {
@@ -57,4 +67,20 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.snap-y {
+  scroll-snap-type: y mandatory;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+}
+
+.h-screen {
+  height: 100vh;
+}
+
+.w-full {
+  width: 100%;
 }

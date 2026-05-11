@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useReels } from "@/hooks/useReels";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { ReelItem } from "./ReelItem";
@@ -8,33 +8,34 @@ import { ReelSkeleton } from "./ReelSkeleton";
 
 export const ReelsContainer = () => {
   const { reels, isLoading, hasMore, loadMore, handleLike } = useReels();
-  const [activeReelIndex, setActiveReelIndex] = useState(0);
+  const containerRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const lastReelRef = useInfiniteScroll({
     hasMore,
     isLoading,
     onLoadMore: loadMore,
-    options: { threshold: 0.5, rootMargin: "100px" },
+    options: { threshold: 0.5 },
   });
 
-  // Handle scroll to detect active reel
-  const handleScroll = useCallback(
-    (e) => {
-      const container = e.target;
-      const scrollTop = container.scrollTop;
+  const handleScroll = useCallback(() => {
+    if (containerRef.current) {
+      const scrollTop = containerRef.current.scrollTop;
       const reelHeight = window.innerHeight;
-      const newActiveIndex = Math.round(scrollTop / reelHeight);
-
-      if (
-        newActiveIndex !== activeReelIndex &&
-        newActiveIndex >= 0 &&
-        newActiveIndex < reels.length
-      ) {
-        setActiveReelIndex(newActiveIndex);
+      const index = Math.round(scrollTop / reelHeight);
+      if (index !== activeIndex && index >= 0 && index < reels.length) {
+        setActiveIndex(index);
       }
-    },
-    [activeReelIndex, reels.length],
-  );
+    }
+  }, [activeIndex, reels.length]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, [handleScroll]);
 
   if (isLoading && reels.length === 0) {
     return <ReelSkeleton />;
@@ -42,19 +43,19 @@ export const ReelsContainer = () => {
 
   return (
     <div
-      className="h-screen overflow-y-scroll snap-y snap-mandatory no-scrollbar"
-      onScroll={handleScroll}
+      ref={containerRef}
+      className="h-screen overflow-y-scroll snap-y snap-mandatory"
     >
       {reels.map((reel, index) => (
         <div
           key={reel.id}
           ref={index === reels.length - 1 ? lastReelRef : null}
-          className="snap-start h-screen"
+          className="h-screen w-full snap-start"
         >
           <ReelItem
             reel={reel}
             onLike={handleLike}
-            isActive={index === activeReelIndex}
+            isActive={index === activeIndex}
           />
         </div>
       ))}
