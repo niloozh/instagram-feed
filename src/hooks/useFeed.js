@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { feedService } from "@/services/feedService";
 
 export const useFeed = (initialPage = 1, limit = 5) => {
@@ -7,17 +7,21 @@ export const useFeed = (initialPage = 1, limit = 5) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
+  const isLoadingRef = useRef(false); // Request deduplication
 
-  // Load posts when page changes
   useEffect(() => {
     loadPosts();
   }, [currentPage]);
 
   const loadPosts = async () => {
-    try {
-      setIsLoading(true);
-      const response = await feedService.getFeed(currentPage, limit);
+    // Prevent duplicate requests
+    if (isLoadingRef.current) return;
 
+    isLoadingRef.current = true;
+    setIsLoading(true);
+
+    try {
+      const response = await feedService.getFeed(currentPage, limit);
       setPosts((prev) => [...prev, ...response.data]);
       setHasMore(response.pagination.hasMore);
       setError(null);
@@ -25,17 +29,11 @@ export const useFeed = (initialPage = 1, limit = 5) => {
       setError(err.message);
     } finally {
       setIsLoading(false);
+      isLoadingRef.current = false;
     }
   };
 
-  const loadMore = useCallback(() => {
-    if (!isLoading && hasMore) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  }, [isLoading, hasMore]);
-
   const handleLike = useCallback(async (postId, isLiked) => {
-    // Optimistic update
     setPosts((prev) =>
       prev.map((post) =>
         post.id === postId
@@ -48,7 +46,6 @@ export const useFeed = (initialPage = 1, limit = 5) => {
       ),
     );
 
-    // API call
     try {
       if (isLiked) {
         await feedService.likePost(postId);
@@ -56,7 +53,6 @@ export const useFeed = (initialPage = 1, limit = 5) => {
         await feedService.unlikePost(postId);
       }
     } catch (error) {
-      // Revert on error
       setPosts((prev) =>
         prev.map((post) =>
           post.id === postId
@@ -72,12 +68,19 @@ export const useFeed = (initialPage = 1, limit = 5) => {
     }
   }, []);
 
+  const loadMore = useCallback(() => {
+    if (!isLoading && hasMore && !isLoadingRef.current) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  }, [isLoading, hasMore]);
+
   const resetFeed = useCallback(() => {
     setPosts([]);
     setCurrentPage(initialPage);
     setIsLoading(true);
     setHasMore(true);
     setError(null);
+    isLoadingRef.current = false;
   }, [initialPage]);
 
   return {
