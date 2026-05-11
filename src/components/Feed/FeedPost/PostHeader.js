@@ -1,9 +1,15 @@
-import { Avatar } from "@/baseComponents/Avatar/Avatar";
+import { Avatar } from "@/baseComponents";
 
 export const PostHeader = ({ username, avatar, isVerified, timestamp }) => {
   return (
     <div className="flex items-center px-4 py-3">
-      <Avatar src={avatar} alt={username} size="md" />
+      <Avatar
+        src={avatar}
+        alt={username}
+        size="md"
+        withStory={true}
+        isVerified={isVerified}
+      />
       <div className="ml-3 flex-1">
         <div className="flex items-center gap-1">
           <span className="text-white font-semibold text-sm">{username}</span>
