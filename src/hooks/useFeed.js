@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { feedService } from "@/services/feedService";
 
 export const useFeed = (initialPage = 1, limit = 5) => {
@@ -7,35 +7,45 @@ export const useFeed = (initialPage = 1, limit = 5) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
+  const isLoadingRef = useRef(false);
+  const abortControllerRef = useRef(null); // For cancelling requests
 
-  // Load posts when page changes
   useEffect(() => {
     loadPosts();
   }, [currentPage]);
 
   const loadPosts = async () => {
-    try {
-      setIsLoading(true);
-      const response = await feedService.getFeed(currentPage, limit);
+    if (isLoadingRef.current) return;
 
+    // Cancel previous in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    isLoadingRef.current = true;
+    setIsLoading(true);
+
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const response = await feedService.getFeed(currentPage, limit, {
+        signal: abortControllerRef.current.signal,
+      });
       setPosts((prev) => [...prev, ...response.data]);
       setHasMore(response.pagination.hasMore);
       setError(null);
     } catch (err) {
-      setError(err.message);
+      if (err.name !== "AbortError") {
+        setError(err.message);
+      }
     } finally {
       setIsLoading(false);
+      isLoadingRef.current = false;
     }
   };
 
-  const loadMore = useCallback(() => {
-    if (!isLoading && hasMore) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  }, [isLoading, hasMore]);
-
   const handleLike = useCallback(async (postId, isLiked) => {
-    // Optimistic update
     setPosts((prev) =>
       prev.map((post) =>
         post.id === postId
@@ -48,7 +58,6 @@ export const useFeed = (initialPage = 1, limit = 5) => {
       ),
     );
 
-    // API call
     try {
       if (isLiked) {
         await feedService.likePost(postId);
@@ -56,7 +65,6 @@ export const useFeed = (initialPage = 1, limit = 5) => {
         await feedService.unlikePost(postId);
       }
     } catch (error) {
-      // Revert on error
       setPosts((prev) =>
         prev.map((post) =>
           post.id === postId
@@ -72,12 +80,23 @@ export const useFeed = (initialPage = 1, limit = 5) => {
     }
   }, []);
 
+  const loadMore = useCallback(() => {
+    if (!isLoading && hasMore && !isLoadingRef.current) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  }, [isLoading, hasMore]);
+
   const resetFeed = useCallback(() => {
+    // Abort any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     setPosts([]);
     setCurrentPage(initialPage);
     setIsLoading(true);
     setHasMore(true);
     setError(null);
+    isLoadingRef.current = false;
   }, [initialPage]);
 
   return {
