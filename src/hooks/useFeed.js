@@ -7,26 +7,38 @@ export const useFeed = (initialPage = 1, limit = 5) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
-  const isLoadingRef = useRef(false); // Request deduplication
+  const isLoadingRef = useRef(false);
+  const abortControllerRef = useRef(null); // For cancelling requests
 
   useEffect(() => {
     loadPosts();
   }, [currentPage]);
 
   const loadPosts = async () => {
-    // Prevent duplicate requests
     if (isLoadingRef.current) return;
+
+    // Cancel previous in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
 
     isLoadingRef.current = true;
     setIsLoading(true);
 
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+
     try {
-      const response = await feedService.getFeed(currentPage, limit);
+      const response = await feedService.getFeed(currentPage, limit, {
+        signal: abortControllerRef.current.signal,
+      });
       setPosts((prev) => [...prev, ...response.data]);
       setHasMore(response.pagination.hasMore);
       setError(null);
     } catch (err) {
-      setError(err.message);
+      if (err.name !== "AbortError") {
+        setError(err.message);
+      }
     } finally {
       setIsLoading(false);
       isLoadingRef.current = false;
@@ -75,6 +87,10 @@ export const useFeed = (initialPage = 1, limit = 5) => {
   }, [isLoading, hasMore]);
 
   const resetFeed = useCallback(() => {
+    // Abort any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     setPosts([]);
     setCurrentPage(initialPage);
     setIsLoading(true);
