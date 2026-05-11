@@ -39,7 +39,7 @@ export const Navigation = () => {
         </Link>
 
         <Link href="/profile">
-          <Icon name="user" filled={pathname === "/profile"} size={28} />
+          <Icon name="profile" filled={pathname === "/profile"} size={28} />
         </Link>
       </div>
     </div>

@@ -8,6 +8,7 @@ import {
   AiOutlineHome,
   AiFillHome,
   AiOutlineUser,
+  AiFillUser,
   AiOutlineSearch,
   AiOutlinePlusCircle,
   AiOutlineMenu,
@@ -28,6 +29,7 @@ export const Icon = ({
   const icons = {
     // Navigation
     home: filled ? AiFillHome : AiOutlineHome,
+    profile: filled ? AiFillUser : AiOutlineUser,
     user: filled ? BsPersonFill : BsPerson,
     userOutline: AiOutlineUser,
 
