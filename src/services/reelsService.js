@@ -1,13 +1,19 @@
 let idCounter = 0;
 
 const generateMockReels = (page, limit = 3) => {
+  const workingVideoUrls = [
+    "http://techslides.com/demos/sample-videos/small.mp4",
+    "http://techslides.com/demos/sample-videos/small.mp4",
+    "http://techslides.com/demos/sample-videos/small.mp4",
+  ];
+
   return Array.from({ length: limit }, (_, i) => {
-    idCounter++; // Increment for each reel
+    idCounter++;
     return {
-      id: `reel_${idCounter}_${Date.now()}_${Math.random()}`, // Truly unique
+      id: `reel_${idCounter}_${Date.now()}`,
       username: `creator_${Math.floor(Math.random() * 100)}`,
-      userAvatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-      videoUrl: `https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4`,
+      userAvatar: `https://randomuser.me/api/portraits/${i % 2 === 0 ? "women" : "men"}/${Math.floor(Math.random() * 100)}.jpg`,
+      videoUrl: workingVideoUrls[(page + i) % workingVideoUrls.length],
       description: [
         "Amazing reel! 🎬",
         "Check this out! ✨",
@@ -16,6 +22,7 @@ const generateMockReels = (page, limit = 3) => {
       likes: Math.floor(Math.random() * 50000),
       comments: Math.floor(Math.random() * 2000),
       hasLiked: false,
+      hasSaved: false,
       music: "Trending Song 🎵",
       createdAt: `${Math.floor(Math.random() * 24)} hours ago`,
     };
@@ -24,7 +31,7 @@ const generateMockReels = (page, limit = 3) => {
 
 export const reelsService = {
   getReels: async (page, limit = 3) => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     const hasMore = page < 5;
     const reels = generateMockReels(page, limit);
 
