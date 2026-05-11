@@ -8,7 +8,9 @@ import {
   AiOutlineHome,
   AiFillHome,
   AiOutlineUser,
-  AiFillUser,
+  AiOutlineSetting,
+  AiOutlineAppstore,
+  AiOutlineVideoCamera,
   AiOutlineSearch,
   AiOutlinePlusCircle,
   AiOutlineMenu,
@@ -17,7 +19,7 @@ import {
 } from "react-icons/ai";
 import { BiCompass } from "react-icons/bi";
 import { BsMusicNote, BsPerson, BsPersonFill } from "react-icons/bs";
-import { FaUser, FaUserCircle } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
 
 export const Icon = ({
   name,
@@ -30,7 +32,7 @@ export const Icon = ({
   const icons = {
     // Navigation
     home: filled ? AiFillHome : AiOutlineHome,
-    profile: filled ? FaUserCircle : FaUser,
+    profile: FaUser,
     user: filled ? BsPersonFill : BsPerson,
     userOutline: AiOutlineUser,
 
@@ -39,6 +41,11 @@ export const Icon = ({
     comment: AiOutlineComment,
     share: AiOutlineSend,
     bookmark: filled ? AiFillBook : AiOutlineBook,
+
+    // Settings menu
+    settings: AiOutlineSetting,
+    grid: AiOutlineAppstore,
+    video: AiOutlineVideoCamera,
 
     // Media
     camera: AiOutlineCamera,
