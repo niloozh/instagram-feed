@@ -1,27 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/baseComponents/Card/Card";
-import { Avatar } from "@/baseComponents/Avatar/Avatar";
-import { Button } from "@/baseComponents/Button/Button";
+import { Card, Avatar, LazyImage } from "@/baseComponents";
 import { PostActions } from "./PostActions";
 import { PostHeader } from "./PostHeader";
 import { PostCaption } from "./PostCaption";
 import { PostComments } from "./PostComments";
 
-export const FeedPost = ({ post, onLike, onComment, onShare }) => {
+export const FeedPost = ({ post, onLike, onComment, onShare, onSave }) => {
   const [isLiked, setIsLiked] = useState(post.hasLiked || false);
   const [likesCount, setLikesCount] = useState(post.likes);
   const [isSaved, setIsSaved] = useState(post.hasSaved || false);
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
-    onSave?.(post.id, !isSaved);
-  };
   const handleLike = () => {
     setIsLiked(!isLiked);
     setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
     onLike?.(post.id, !isLiked);
+  };
+
+  const handleSave = () => {
+    setIsSaved(!isSaved);
+    onSave?.(post.id, !isSaved);
   };
 
   return (
@@ -33,17 +32,19 @@ export const FeedPost = ({ post, onLike, onComment, onShare }) => {
         timestamp={post.createdAt}
       />
 
-      <img
+      <LazyImage
         src={post.imageUrl}
-        alt="Post"
-        className="w-full aspect-square object-cover"
+        alt={`Post by ${post.username}`}
+        aspectRatio="square"
       />
 
       <PostActions
         isLiked={isLiked}
+        isSaved={isSaved}
         onLike={handleLike}
         onComment={() => onComment?.(post.id)}
         onShare={() => onShare?.(post.id)}
+        onSave={handleSave}
       />
 
       <PostCaption
