@@ -30,7 +30,7 @@ export const Icon = ({
   const icons = {
     // Navigation
     home: filled ? AiFillHome : AiOutlineHome,
-    profile: filled ? FaUserCircle : FaUser,
+    profile: FaUser,
     user: filled ? BsPersonFill : BsPerson,
     userOutline: AiOutlineUser,
 
