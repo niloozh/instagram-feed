@@ -36,7 +36,8 @@ export const ReelItem = ({ reel, onLike, isActive }) => {
     }
   }, [isActive]);
 
-  const handleVideoLoad = () => {
+  // Start playing as soon as FIRST CHUNK is downloaded
+  const handleCanPlay = () => {
     setIsLoading(false);
     if (isActive && videoRef.current) {
       videoRef.current
@@ -73,8 +74,9 @@ export const ReelItem = ({ reel, onLike, isActive }) => {
       <ReelVideo
         ref={videoRef}
         src={reel.videoUrl}
-        onLoadedData={handleVideoLoad}
+        onCanPlay={handleCanPlay}
         onClick={togglePlay}
+        isActive={isActive}
       />
 
       <ReelLoadingSpinner isLoading={isLoading} />
