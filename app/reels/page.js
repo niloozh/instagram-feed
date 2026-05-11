@@ -4,7 +4,7 @@ import { ReelsContainer } from "@/components/Reels/ReelsContainer";
 
 export default function ReelsPage() {
   return (
-    <div className="bg-black min-h-screen">
+    <div className="instagram-container-full">
       <ReelsContainer />
     </div>
   );

@@ -9,8 +9,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-black text-white" suppressHydrationWarning>
-        {children}
+      <body className="bg-black text-white">
+        <div className="instagram-container">{children}</div>
         <Navigation />
       </body>
     </html>

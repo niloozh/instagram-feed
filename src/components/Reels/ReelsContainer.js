@@ -21,7 +21,8 @@ export const ReelsContainer = () => {
   const handleScroll = useCallback(() => {
     if (containerRef.current) {
       const scrollTop = containerRef.current.scrollTop;
-      const index = Math.round(scrollTop / window.innerHeight);
+      const reelHeight = window.innerHeight;
+      const index = Math.round(scrollTop / reelHeight);
       if (index !== activeIndex && index >= 0 && index < reels.length) {
         setActiveIndex(index);
       }
@@ -63,7 +64,7 @@ export const ReelsContainer = () => {
 
       {!hasMore && !isLoading && (
         <div className="h-screen flex items-center justify-center bg-black">
-          <p className="text-gray-500">You've seen all reels! 🎬</p>
+          <p className="text-gray-500 text-center">You've seen all reels! 🎬</p>
         </div>
       )}
     </div>
