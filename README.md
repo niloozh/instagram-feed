@@ -24,23 +24,23 @@
 
 ## 📋 Table of Contents
 
-- [Project Overview](#project-overview)
-- [Technical Decisions](#technical-decisions)
-- [Why Client-Side Rendering](#why-client-side-rendering)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Component Library](#component-library)
+- [Project Overview](#-project-overview)
+- [Technical Decisions](-#technical-decisions)
+- [Why Client-Side Rendering (CSR)](#why-client-side-rendering-csr)
+- [Features](#-features)
+- [Architecture](#%EF%B8%8F-architecture)
+- [Component Library](#-component-library)
 - [Design System Usage Status](#design-system-usage-status)
-- [Custom Hooks](#custom-hooks)
+- [Custom Hooks](#-custom-hooks)
   - [useInfiniteScroll](#useinfinitescroll)
   - [useFeed](#usefeed)
   - [useReels](#usereels)
-- [Performance Optimizations](#performance-optimizations)
-- [Network Considerations](#network-considerations)
-- [Installation & Setup](#installation--setup)
-- [Folder Structure](#folder-structure)
-- [Git Workflow](#git-workflow)
-- [Future Improvements](#future-improvements)
+- [Performance Optimizations](#-performance-optimizations)
+- [Network Considerations](#-network-considerations)
+- [Installation & Setup](#-installation--setup)
+- [Folder Structure](#-folder-structure)
+- [Git Workflow](#-git-workflow)
+- [Future Improvements](#-future-improvements)
 
 ---
 
