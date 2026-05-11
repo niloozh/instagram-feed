@@ -1,21 +1,34 @@
-import { Button } from "@/baseComponents";
+import { Icon } from "@/baseComponents";
 
-export const ReelActions = ({ likes, comments, hasLiked, onLike }) => {
+export const ReelActions = ({
+  likes,
+  comments,
+  hasLiked,
+  hasSaved,
+  onLike,
+  onSave,
+}) => {
   return (
-    <div className="absolute bottom-20 right-4 flex flex-col items-center gap-6">
-      <button onClick={onLike} className="flex flex-col items-center">
-        <span className="text-3xl">{hasLiked ? "❤️" : "🤍"}</span>
-        <span className="text-xs mt-1">{likes.toLocaleString()}</span>
-      </button>
+    <div className="absolute bottom-24 right-4 flex flex-col items-center gap-6">
+      <div className="flex flex-col items-center">
+        <Icon name="heart" filled={hasLiked} size={32} onClick={onLike} />
+        <span className="text-xs text-white mt-1">
+          {likes.toLocaleString()}
+        </span>
+      </div>
 
-      <button className="flex flex-col items-center">
-        <span className="text-3xl">💬</span>
-        <span className="text-xs mt-1">{comments.toLocaleString()}</span>
-      </button>
+      <div className="flex flex-col items-center">
+        <Icon name="comment" size={32} />
+        <span className="text-xs text-white mt-1">
+          {comments.toLocaleString()}
+        </span>
+      </div>
 
-      <button className="flex flex-col items-center">
-        <span className="text-3xl">📤</span>
-      </button>
+      <div className="flex flex-col items-center">
+        <Icon name="share" size={32} />
+      </div>
+
+      <Icon name="bookmark" filled={hasSaved} size={32} onClick={onSave} />
     </div>
   );
 };

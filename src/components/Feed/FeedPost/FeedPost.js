@@ -12,7 +12,12 @@ import { PostComments } from "./PostComments";
 export const FeedPost = ({ post, onLike, onComment, onShare }) => {
   const [isLiked, setIsLiked] = useState(post.hasLiked || false);
   const [likesCount, setLikesCount] = useState(post.likes);
+  const [isSaved, setIsSaved] = useState(post.hasSaved || false);
 
+  const handleSave = () => {
+    setIsSaved(!isSaved);
+    onSave?.(post.id, !isSaved);
+  };
   const handleLike = () => {
     setIsLiked(!isLiked);
     setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
