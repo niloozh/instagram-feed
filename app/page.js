@@ -18,12 +18,6 @@ export default function Home() {
           <div className="flex gap-4">
             <Icon name="heart" size={24} />
             <Icon name="share" size={24} />
-            <a
-              href="/design-system"
-              className="text-blue-500 text-sm hover:text-blue-400"
-            >
-              DS
-            </a>
           </div>
         </div>
       </div>

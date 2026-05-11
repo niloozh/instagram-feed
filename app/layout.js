@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Navigation } from "@/components/Layout/Navigation";
+import { SettingsMenu } from "@/components/Layout/SettingsMenu";
 
 export const metadata = {
   title: "Instagram Feed & Reels",
@@ -12,6 +13,7 @@ export default function RootLayout({ children }) {
       <body className="bg-black text-white">
         <div className="instagram-container">{children}</div>
         <Navigation />
+        <SettingsMenu />
       </body>
     </html>
   );
