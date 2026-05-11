@@ -26,7 +26,7 @@
 
 - [Project Overview](#project-overview)
 - [Technical Decisions](#technical-decisions)
-- [Why Client-Side Rendering (CSR)](#why-client-side-rendering-csr)
+- [Why Client-Side Rendering](#why-client-side-rendering)
 - [Features](#features)
 - [Architecture](#architecture)
 - [Component Library](#component-library)
@@ -103,7 +103,7 @@ This project is a fully functional Instagram-like application built as a senior-
 
 ---
 
-## Why Client-Side Rendering (CSR)
+## Why Client-Side Rendering
 
 ### Decision: Use Client-Side Rendering for Feed and Reels pages
 
