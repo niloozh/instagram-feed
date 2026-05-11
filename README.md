@@ -24,22 +24,23 @@
 
 ## 📋 Table of Contents
 
-- [Project Overview](#project-overview)
-- [Technical Decisions](#technical-decisions)
+- [Project Overview](#-project-overview)
+- [Technical Decisions](-#technical-decisions)
 - [Why Client-Side Rendering (CSR)](#why-client-side-rendering-csr)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Component Library](#component-library)
-- [Custom Hooks](#custom-hooks)
+- [Features](#-features)
+- [Architecture](#%EF%B8%8F-architecture)
+- [Component Library](#-component-library)
+- [Design System Usage Status](#design-system-usage-status)
+- [Custom Hooks](#-custom-hooks)
   - [useInfiniteScroll](#useinfinitescroll)
   - [useFeed](#usefeed)
   - [useReels](#usereels)
-- [Performance Optimizations](#performance-optimizations)
-- [Network Considerations](#network-considerations)
-- [Installation & Setup](#installation--setup)
-- [Folder Structure](#folder-structure)
-- [Git Workflow](#git-workflow)
-- [Future Improvements](#future-improvements)
+- [Performance Optimizations](#-performance-optimizations)
+- [Network Considerations](#-network-considerations)
+- [Installation & Setup](#-installation--setup)
+- [Folder Structure](#-folder-structure)
+- [Git Workflow](#-git-workflow)
+- [Future Improvements](#-future-improvements)
 
 ---
 
@@ -102,7 +103,7 @@ This project is a fully functional Instagram-like application built as a senior-
 
 ---
 
-## Why Client-Side Rendering (CSR)
+## Why Client-Side Rendering
 
 ### Decision: Use Client-Side Rendering for Feed and Reels pages
 
@@ -336,6 +337,21 @@ User Clicks Like
 | aspectRatio | 'square' \| 'video' \| 'portrait' | 'square'     | Container ratio    |
 | fallbackSrc | string                            | Built-in SVG | Image on error     |
 | retryable   | boolean                           | true         | Shows retry button |
+
+### Design System Usage Status
+
+| Component  | Used in App           | Design System Page |
+| ---------- | --------------------- | ------------------ |
+| Button     | ✅ Yes                | ✅ Documented      |
+| Avatar     | ✅ Yes                | ✅ Documented      |
+| Icon       | ✅ Yes                | ✅ Documented      |
+| LazyImage  | ✅ Yes                | ✅ Documented      |
+| Card       | ✅ Yes                | ✅ Documented      |
+| Typography | ⚠️ Documentation only | ✅ Documented      |
+| Colors     | ⚠️ Documentation only | ✅ Documented      |
+| Spacing    | ⚠️ Documentation only | ✅ Documented      |
+
+The Design System page (`/design-system`) serves as a **living style guide** for developers, demonstrating available components and design tokens even if not every variant is used in the current implementation.
 
 ---
 
