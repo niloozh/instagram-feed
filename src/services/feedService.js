@@ -1,6 +1,8 @@
+import { APP_CONFIG } from "@/constants/appConstants";
+
 let postIdCounter = 0;
 
-const generateMockPosts = (page, limit = 5) => {
+const generateMockPosts = (page, limit = APP_CONFIG.feed.postsPerPage) => {
   return Array.from({ length: limit }, (_, i) => {
     postIdCounter++;
     return {
@@ -26,14 +28,16 @@ const generateMockPosts = (page, limit = 5) => {
 };
 
 export const feedService = {
-  getFeed: async (page, limit = 5) => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    const hasMore = page < 5;
+  getFeed: async (page, limit = APP_CONFIG.feed.postsPerPage) => {
+    await new Promise((resolve) =>
+      setTimeout(resolve, APP_CONFIG.feed.apiDelay),
+    );
+    const hasMore = page < APP_CONFIG.feed.maxPages;
     const posts = generateMockPosts(page, limit);
 
     return {
       data: posts,
-      pagination: { page, limit, hasMore, total: 25 },
+      pagination: { page, limit, hasMore, total: APP_CONFIG.feed.totalPosts },
     };
   },
 
