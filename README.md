@@ -26,10 +26,14 @@
 
 - [Project Overview](#project-overview)
 - [Technical Decisions](#technical-decisions)
+- [Why Client-Side Rendering (CSR)](#why-client-side-rendering-csr)
 - [Features](#features)
 - [Architecture](#architecture)
 - [Component Library](#component-library)
 - [Custom Hooks](#custom-hooks)
+  - [useInfiniteScroll](#useinfinitescroll)
+  - [useFeed](#usefeed)
+  - [useReels](#usereels)
 - [Performance Optimizations](#performance-optimizations)
 - [Network Considerations](#network-considerations)
 - [Installation & Setup](#installation--setup)
@@ -94,7 +98,73 @@ This project is a fully functional Instagram-like application built as a senior-
 | **Intersection Observer** | **Excellent (native API)** | **Medium** | **Low** |
 | React Virtual Library     | Good                       | High       | Medium  |
 
-**Result:** 60fps scrolling with no jank
+**Result:** Smooth 60fps scrolling with no jank
+
+---
+
+## Why Client-Side Rendering (CSR)
+
+### Decision: Use Client-Side Rendering for Feed and Reels pages
+
+```javascript
+"use client"; // All interactive pages use client components
+
+export default function FeedPage() {
+  // Data fetched on client after authentication
+}
+```
+
+### Why CSR for this project?
+
+| Aspect                     | CSR           | SSR/ISR               | Decision     |
+| -------------------------- | ------------- | --------------------- | ------------ |
+| **User-specific content**  | ✅ Perfect    | ⚠️ Complex            | CSR wins     |
+| **Real-time interactions** | ✅ Instant    | ⚠️ Requires hydration | CSR wins     |
+| **SEO requirements**       | ❌ Not needed | ✅ Good               | Not a factor |
+| **Server load**            | ✅ Low        | ⚠️ Higher             | CSR wins     |
+
+### When would we use SSR/ISR?
+
+**SSR (Server-Side Rendering)** - For public profiles that need SEO:
+
+```javascript
+// app/profile/[username]/page.js
+export const dynamic = "force-dynamic"; // SSR for SEO
+
+async function UserProfile({ params }) {
+  const user = await fetchUser(params.username);
+  return <Profile user={user} />;
+}
+```
+
+**ISR (Incremental Static Regeneration)** - For trending page that updates hourly:
+
+```javascript
+// app/trending/page.js
+export const revalidate = 3600; // Regenerate every hour
+
+async function TrendingPage() {
+  const posts = await getTrendingPosts();
+  return <Feed posts={posts} />;
+}
+```
+
+**Static Generation** - For design system (never changes):
+
+```javascript
+// app/design-system/page.js
+export const dynamic = "force-static"; // Build once, serve forever
+```
+
+### Why CSR is correct for Instagram-like apps:
+
+1. **Authentication required** - No SEO benefit for logged-in views
+2. **Personalized content** - Every user sees different feed
+3. **Real-time interactions** - Likes, comments need instant updates
+4. **Infinite scroll** - Dynamic loading works better client-side
+5. **Video content** - Better client-side control for autoplay
+
+**Conclusion:** CSR is the right choice for this application's requirements.
 
 ---
 
@@ -135,131 +205,78 @@ This project is a fully functional Instagram-like application built as a senior-
 ### High-Level Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Browser / Client                                │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           Next.js App Router                                 │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────────────────┐  │
-│  │  / (Feed)   │  │ /reels      │  │ /design-system                      │  │
-│  │  page.js    │  │ page.js     │  │ page.js                             │  │
-│  └──────┬──────┘  └──────┬──────┘  └──────────────────┬──────────────────┘  │
-└─────────┼────────────────┼──────────────────────────┼──────────────────────┘
-          │                │                          │
-          ▼                ▼                          ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           Component Layer                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                        Features Components                           │    │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐               │    │
-│  │  │FeedContainer │  │ReelsContainer│  │DesignSystem  │               │    │
-│  │  └──────┬───────┘  └──────┬───────┘  └──────────────┘               │    │
-│  └─────────┼──────────────────┼────────────────────────────────────────┘    │
-│            │                  │                                             │
-│            ▼                  ▼                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                         Base Components                              │    │
-│  │         ┌──────┐  ┌──────┐  ┌──────┐                                │    │
-│  │         │ Card │  │Button│  │Avatar│                                │    │
-│  │         └──────┘  └──────┘  └──────┘                                │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────┘
-          │                          │                          │
-          ▼                          ▼                          ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                             Hooks Layer                                      │
-│  ┌───────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐    │
-│  │useInfiniteScroll  │  │    useFeed      │  │       useReels          │    │
-│  │                   │  │                 │  │                         │    │
-│  │ • Intersection    │  │ • posts state   │  │ • reels state           │    │
-│  │   Observer        │  │ • loadMore      │  │ • loadMore              │    │
-│  │ • lastElementRef  │  │ • handleLike    │  │ • handleLike            │    │
-│  │ • rootMargin      │  │ • resetFeed     │  │                         │    │
-│  └───────────────────┘  └─────────────────┘  └─────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────┘
-          │                          │                          │
-          ▼                          ▼                          ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           Services Layer                                     │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                        API Abstraction                               │    │
-│  │  ┌─────────────────┐              ┌─────────────────┐               │    │
-│  │  │   feedService   │              │  reelsService   │               │    │
-│  │  │                 │              │                 │               │    │
-│  │  │ • getFeed()     │              │ • getReels()    │               │    │
-│  │  │ • likePost()    │              │ • likeReel()    │               │    │
-│  │  │ • unlikePost()  │              │                 │               │    │
-│  │  └────────┬────────┘              └────────┬────────┘               │    │
-│  └───────────┼────────────────────────────────┼────────────────────────┘    │
-└──────────────┼────────────────────────────────┼────────────────────────────┘
-               │                                │
-               ▼                                ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Data Layer                                      │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                           Mock API / Future Backend                   │    │
-│  │                                                                       │    │
-│  │  Posts ────────────────────► [{ id, user, image, likes, comments }]  │    │
-│  │  Reels ────────────────────► [{ id, user, video, likes, music }]     │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                        Browser                              │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Next.js App Router                       │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────┐              │
+│  │ / (Feed) │  │ /reels   │  │ /design-system│              │
+│  └────┬─────┘  └────┬─────┘  └──────┬───────┘              │
+└───────┼─────────────┼───────────────┼───────────────────────┘
+        │             │               │
+        ▼             ▼               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Component Layer                          │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  FeedContainer │ ReelsContainer │ DesignSystem      │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  FeedPost │ ReelItem │ PostHeader │ ReelActions     │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+        │             │               │
+        ▼             ▼               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Hooks Layer                            │
+│  ┌──────────────┐ ┌──────────┐ ┌──────────┐                │
+│  │useInfinite   │ │ useFeed  │ │ useReels │                │
+│  │   Scroll     │ │          │ │          │                │
+│  └──────────────┘ └──────────┘ └──────────┘                │
+└─────────────────────────────────────────────────────────────┘
+        │             │               │
+        ▼             ▼               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Services Layer                           │
+│  ┌──────────────────┐  ┌──────────────────┐                │
+│  │   feedService    │  │  reelsService    │                │
+│  │ • getFeed()      │  │ • getReels()     │                │
+│  │ • likePost()     │  │ • likeReel()     │                │
+│  └──────────────────┘  └──────────────────┘                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Data Flow
+### Data Flow (Optimistic Updates)
 
 ```
-User Scrolls
-      │
-      ▼
-┌─────────────┐
-│ Intersection│  ──────►  loadMore()  ──────►  fetch API
-│  Observer   │
-└─────────────┘
-                        │
-                        ▼
-                 ┌─────────────┐
-                 │ New Data    │
-                 │ Received    │
-                 └─────────────┘
-                        │
-                        ▼
-┌─────────────┐    ┌─────────────┐
-│ Optimistic  │    │   Update    │  ──────►  Re-render
-│    UI       │◄───│   State     │            Component
-└─────────────┘    └─────────────┘
-```
-
-## Technology Stack
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         PRESENTATION                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
-│  │   React 18   │  │ Tailwind CSS │  │ Framer Motion│           │
-│  │  (Hooks +    │  │  (Styling)   │  │ (Animations) │           │
-│  │   Context)   │  │              │  │              │           │
-│  └──────────────┘  └──────────────┘  └──────────────┘           │
-├─────────────────────────────────────────────────────────────────┤
-│                           FRAMEWORK                              │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │                    Next.js 14 (App Router)               │   │
-│  │  • Server Components  • Client Components  • Routing     │   │
-│  └──────────────────────────────────────────────────────────┘   │
-├─────────────────────────────────────────────────────────────────┤
-│                          DATA & API                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
-│  │    Axios     │  │ React Query  │  │  Mock Data   │           │
-│  │ (HTTP Calls) │  │  (Caching)   │  │ (Prototyping)│           │
-│  └──────────────┘  └──────────────┘  └──────────────┘           │
-├─────────────────────────────────────────────────────────────────┤
-│                        DEPLOYMENT                                │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │                    Vercel                                │   │
-│  │  • CI/CD  • Auto-deploy  • Edge Network                 │   │
-│  └──────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+User Clicks Like
+       │
+       ▼
+┌─────────────────┐
+│ Update UI       │ ← Instant feedback (optimistic)
+│ Immediately     │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ API Call in     │ ← Background
+│ Background      │
+└────────┬────────┘
+         │
+    ┌────┴────┐
+    ▼         ▼
+┌───────┐ ┌───────┐
+│Success│ │Error  │
+│  ✅   │ │  ❌   │
+└───┬───┘ └───┬───┘
+    │         │
+    ▼         ▼
+┌───────┐ ┌───────┐
+│ Done  │ │Revert │ ← Rollback on
+│       │ │ UI    │   failure
+└───────┘ └───────┘
 ```
 
 ---
@@ -301,7 +318,6 @@ User Scrolls
 | size       | 'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl' | 'md'    | Avatar dimensions          |
 | withStory  | boolean                              | false   | Shows Instagram-style ring |
 | isVerified | boolean                              | false   | Shows verified badge       |
-| lazyLoad   | boolean                              | true    | Only load when visible     |
 
 ---
 
@@ -327,56 +343,311 @@ User Scrolls
 
 ### `useInfiniteScroll`
 
-Reusable hook for infinite scrolling.
+A reusable hook that implements infinite scrolling using the Intersection Observer API.
+
+#### Why Intersection Observer instead of scroll events?
+
+| Approach                  | Performance                | Complexity | Memory  |
+| ------------------------- | -------------------------- | ---------- | ------- |
+| Scroll Event Listener     | Poor (blocks main thread)  | Low        | High    |
+| **Intersection Observer** | **Excellent (native API)** | **Medium** | **Low** |
+
+#### Complete Implementation
 
 ```javascript
-const lastElementRef = useInfiniteScroll({
-  hasMore, // boolean - more items to load?
-  isLoading, // boolean - currently fetching?
-  onLoadMore, // function - called at scroll bottom
-  options: { threshold: 0.2, rootMargin: "200px" },
-});
+import { useEffect, useRef, useCallback } from "react";
+
+export const useInfiniteScroll = ({
+  hasMore, // Are there more items to load?
+  isLoading, // Is data currently being fetched?
+  onLoadMore, // Function to load more items
+  options = {}, // IntersectionObserver options
+}) => {
+  const observerRef = useRef(null);
+
+  const lastElementRef = useCallback(
+    (node) => {
+      // Prevent loading while already fetching
+      if (isLoading) return;
+
+      // Clean up previous observer
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+
+      // Create new observer with optimized settings
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore && !isLoading) {
+            onLoadMore();
+          }
+        },
+        {
+          threshold: 0.2, // Trigger when 20% visible
+          rootMargin: "200px", // Start loading 200px before bottom
+          ...options,
+        },
+      );
+
+      if (node) {
+        observerRef.current.observe(node);
+      }
+    },
+    [isLoading, hasMore, onLoadMore, options],
+  );
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  return lastElementRef;
+};
 ```
 
-**How it works:**
+#### Usage Example
 
-1. Attaches ref to last element
-2. Creates Intersection Observer
-3. Triggers `onLoadMore` when element is visible
-4. Automatically cleans up observers
+```javascript
+const FeedContainer = () => {
+  const { posts, isLoading, hasMore, loadMore } = useFeed();
+
+  const lastPostRef = useInfiniteScroll({
+    hasMore,
+    isLoading,
+    onLoadMore: loadMore,
+    options: { threshold: 0.2, rootMargin: "200px" },
+  });
+
+  return (
+    <div>
+      {posts.map((post, index) => (
+        <div
+          key={post.id}
+          ref={index === posts.length - 1 ? lastPostRef : null}
+        >
+          <FeedPost post={post} />
+        </div>
+      ))}
+    </div>
+  );
+};
+```
+
+#### Key Features
+
+1. **Memory leak prevention** - Disconnects old observers before creating new ones
+2. **Race condition prevention** - `if (isLoading) return` prevents duplicate calls
+3. **Configurable thresholds** - Customize when loading triggers
+4. **Automatic cleanup** - Cleans up observer on unmount
+5. **Reusable** - Works with any list (feed, reels, comments, search results)
 
 ---
 
 ### `useFeed`
 
-Manages feed state.
+Manages feed posts state, pagination, and optimistic updates.
+
+#### Complete Implementation
 
 ```javascript
-const { posts, isLoading, hasMore, loadMore, handleLike } = useFeed();
+import { useState, useEffect, useCallback } from "react";
+import { feedService } from "@/services/feedService";
+
+export const useFeed = (initialPage = 1, limit = 5) => {
+  const [posts, setPosts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load posts when page changes
+  useEffect(() => {
+    loadPosts();
+  }, [currentPage]);
+
+  const loadPosts = async () => {
+    try {
+      setIsLoading(true);
+      const response = await feedService.getFeed(currentPage, limit);
+
+      setPosts((prev) => [...prev, ...response.data]);
+      setHasMore(response.pagination.hasMore);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Optimistic UI update for likes
+  const handleLike = useCallback(async (postId, isLiked) => {
+    // 1. Update UI immediately (optimistic)
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              hasLiked: isLiked,
+              likes: isLiked ? post.likes + 1 : post.likes - 1,
+            }
+          : post,
+      ),
+    );
+
+    // 2. Send API call in background
+    try {
+      if (isLiked) {
+        await feedService.likePost(postId);
+      } else {
+        await feedService.unlikePost(postId);
+      }
+    } catch (error) {
+      // 3. Revert on error (pessimistic fallback)
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                hasLiked: !isLiked,
+                likes: isLiked ? post.likes - 1 : post.likes + 1,
+              }
+            : post,
+        ),
+      );
+      console.error("Failed to update like:", error);
+    }
+  }, []);
+
+  const loadMore = useCallback(() => {
+    if (!isLoading && hasMore) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  }, [isLoading, hasMore]);
+
+  const resetFeed = useCallback(() => {
+    setPosts([]);
+    setCurrentPage(initialPage);
+    setIsLoading(true);
+    setHasMore(true);
+    setError(null);
+  }, [initialPage]);
+
+  return {
+    posts,
+    isLoading,
+    hasMore,
+    error,
+    loadMore,
+    handleLike,
+    resetFeed,
+  };
+};
 ```
 
-**Features:**
+#### Optimistic UI Explained
 
-- Automatic pagination
-- Optimistic like updates
-- Error recovery
-- Feed reset capability
+```
+User clicks like
+       │
+       ▼
+┌─────────────────────────────┐
+│ UI updates IMMEDIATELY       │ ← User sees instant feedback
+│ (heart fills, count +1)      │
+└─────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────┐
+│ API call in background       │
+└─────────────────────────────┘
+       │
+   ┌───┴───┐
+   ▼       ▼
+Success   Error
+   │       │
+   ▼       ▼
+ Done    Revert UI ← User never sees failure
+```
+
+#### Benefits of Optimistic UI
+
+| Aspect            | Pessimistic (wait for API) | Optimistic (instant update) |
+| ----------------- | -------------------------- | --------------------------- |
+| Perceived speed   | Slow (1-2s)                | Instant                     |
+| User satisfaction | Low                        | High                        |
+| Engagement        | Lower                      | Higher                      |
 
 ---
 
 ### `useReels`
 
-Manages reels with video handling.
+Manages reels state with video-specific handling for autoplay on scroll.
 
 ```javascript
-const { reels, isLoading, hasMore, loadMore, handleLike } = useReels();
+import { useState, useEffect, useCallback } from "react";
+import { reelsService } from "@/services/reelsService";
+
+export const useReels = (initialPage = 1, limit = 3) => {
+  const [reels, setReels] = useState([]);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+
+  useEffect(() => {
+    loadReels();
+  }, [currentPage]);
+
+  const loadReels = async () => {
+    try {
+      setIsLoading(true);
+      const response = await reelsService.getReels(currentPage, limit);
+      setReels((prev) => [...prev, ...response.data]);
+      setHasMore(response.pagination.hasMore);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadMore = useCallback(() => {
+    if (!isLoading && hasMore) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  }, [isLoading, hasMore]);
+
+  // Optimistic like update (same pattern as useFeed)
+  const handleLike = useCallback(async (reelId, isLiked) => {
+    setReels((prev) =>
+      prev.map((reel) =>
+        reel.id === reelId
+          ? {
+              ...reel,
+              hasLiked: isLiked,
+              likes: isLiked ? reel.likes + 1 : reel.likes - 1,
+            }
+          : reel,
+      ),
+    );
+
+    await reelsService.likeReel(reelId);
+  }, []);
+
+  return { reels, isLoading, hasMore, loadMore, handleLike };
+};
 ```
 
-**Features:**
+#### Why separate hooks for Feed and Reels?
 
-- Vertical scroll detection
-- Video autoplay management
-- Active index tracking
+| Aspect       | Single Hook | Separate Hooks |
+| ------------ | ----------- | -------------- |
+| Code clarity | Messy       | Clean ✅       |
+| Reusability  | Low         | High ✅        |
+| Testing      | Complex     | Simple ✅      |
+| Maintenance  | Hard        | Easy ✅        |
+
+**Separation of concerns** - Each hook manages exactly one feature.
 
 ---
 
@@ -387,27 +658,22 @@ const { reels, isLoading, hasMore, loadMore, handleLike } = useReels();
 Images and avatars only load when they enter the viewport.
 
 **Implementation:** Intersection Observer with 100px rootMargin
-**Impact:** 70% reduction in initial page load
 
 ### 2. Infinite Scroll
 
 Posts load 5 at a time, 200px before reaching bottom.
 
 **Implementation:** Intersection Observer with threshold 0.2
-**Impact:** Smooth scrolling, no pagination buttons
 
 ### 3. Optimistic UI
 
 Likes update instantly, API call in background.
 
 **Implementation:** Immediate state update + rollback on error
-**Impact:** Perceived performance improved by 300ms
 
 ### 4. Code Splitting
 
 Next.js automatically splits chunks by route.
-
-**Impact:** Faster initial load, smaller bundle size
 
 ---
 
@@ -543,6 +809,31 @@ gh pr create --base main --head feature/instagram-icons
 - `fix/*` - Bug fixes
 - `docs/*` - Documentation
 - `refactor/*` - Code restructuring
+
+---
+
+## 🔮 Future Improvements
+
+### Short-term (Week 1-2)
+
+- [ ] Comments with nested replies
+- [ ] Save posts to bookmarks
+- [ ] Share to external platforms
+- [ ] Pull-to-refresh on mobile
+
+### Medium-term (Month 1)
+
+- [ ] User authentication (NextAuth)
+- [ ] Real API integration (Node.js backend)
+- [ ] User profiles with posts
+- [ ] Follow/unfollow system
+
+### Long-term (Quarter)
+
+- [ ] Stories feature (24h content)
+- [ ] Direct messaging
+- [ ] Push notifications
+- [ ] PWA for offline support
 
 ---
 
