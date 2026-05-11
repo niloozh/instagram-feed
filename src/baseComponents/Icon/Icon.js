@@ -8,13 +8,16 @@ import {
   AiOutlineHome,
   AiFillHome,
   AiOutlineUser,
+  AiFillUser,
   AiOutlineSearch,
   AiOutlinePlusCircle,
   AiOutlineMenu,
   AiOutlineClose,
+  AiOutlineCamera,
 } from "react-icons/ai";
-import { BiCamera, BiCompass } from "react-icons/bi";
-import { BsMusicNote, BsPerson } from "react-icons/bs";
+import { BiCompass } from "react-icons/bi";
+import { BsMusicNote, BsPerson, BsPersonFill } from "react-icons/bs";
+import { FaUser, FaUserCircle } from "react-icons/fa";
 
 export const Icon = ({
   name,
@@ -27,7 +30,8 @@ export const Icon = ({
   const icons = {
     // Navigation
     home: filled ? AiFillHome : AiOutlineHome,
-    user: BsPerson, // Using BsPerson instead of AiFillUser
+    profile: filled ? FaUserCircle : FaUser,
+    user: filled ? BsPersonFill : BsPerson,
     userOutline: AiOutlineUser,
 
     // Actions
@@ -37,7 +41,7 @@ export const Icon = ({
     bookmark: filled ? AiFillBook : AiOutlineBook,
 
     // Media
-    camera: BiCamera,
+    camera: AiOutlineCamera,
     music: BsMusicNote,
 
     // Navigation bottom
@@ -57,13 +61,18 @@ export const Icon = ({
     return null;
   }
 
-  return (
-    <button
-      onClick={onClick}
-      className={`p-1 hover:scale-110 transition-transform duration-200 ${className}`}
-      aria-label={name}
-    >
-      <IconComponent size={size} color={color} />
-    </button>
-  );
+  // If onClick is provided, wrap in button, otherwise just render icon
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={`p-1 hover:scale-110 transition-transform duration-200 ${className}`}
+        aria-label={name}
+      >
+        <IconComponent size={size} color={color} />
+      </button>
+    );
+  }
+
+  return <IconComponent size={size} color={color} className={className} />;
 };
